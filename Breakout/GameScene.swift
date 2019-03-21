@@ -89,7 +89,7 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
         paddle.name = "paddle"
         paddle.physicsBody = SKPhysicsBody(rectangleOf: paddle.size)
         paddle.physicsBody?.isDynamic = false
-        paddle.physicsBody?.restitution = 1.
+        paddle.physicsBody?.restitution = 1
         addChild(paddle)
     }
     
