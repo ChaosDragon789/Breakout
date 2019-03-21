@@ -11,10 +11,12 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
     
     
     let BallCategory   : UInt32 = 0x1 << 0
-    let BottomCategory : UInt32 = 0x1 << 1
+    let CollisionCategory : UInt32 = 0x1 << 1
     let BlockCategory  : UInt32 = 0x1 << 2
     let PaddleCategory : UInt32 = 0x1 << 3
-    let BorderCategory : UInt32 = 0x1 << 4
+    let BoarderCategory : UInt32 = 0x1 << 4
+    
+    var flip = true
     
     override func didMove(to view: SKView) {
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: self.frame)
@@ -25,12 +27,17 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
         makeLoseZone()
         let paddle = childNode(withName: "paddle") as! SKSpriteNode
         
-        loseZone.physicsBody!.categoryBitMask = BottomCategory
-        brick.physicsBody!.categoryBitMask = BottomCategory
+        self.physicsBody!.categoryBitMask = BoarderCategory
+        loseZone.physicsBody!.categoryBitMask = CollisionCategory
+        
+        brick.physicsBody!.categoryBitMask = CollisionCategory
         ball.physicsBody!.categoryBitMask = BallCategory
+        
         paddle.physicsBody!.categoryBitMask = PaddleCategory
-        self.physicsBody!.categoryBitMask = BorderCategory
-        ball.physicsBody!.contactTestBitMask = BottomCategory
+        paddle.physicsBody!.categoryBitMask = CollisionCategory
+        
+        ball.physicsBody!.categoryBitMask = BallCategory
+        ball.physicsBody!.contactTestBitMask = CollisionCategory
         
         physicsWorld.contactDelegate = self
     }
@@ -57,28 +64,20 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
         ball.strokeColor = UIColor.black
         ball.fillColor = UIColor.yellow
         ball.name = "ball"
-        
         // physics shape matches ball image
         ball.physicsBody = SKPhysicsBody(circleOfRadius: 10)
-        
         // ignores all forces and impulses
         ball.physicsBody?.isDynamic = true
-        
         // use precise collision detection
         ball.physicsBody?.usesPreciseCollisionDetection = true
-        
         // no loss of energy from friction
         ball.physicsBody?.friction = 0
-        
         // gravity is not a factor
         ball.physicsBody?.affectedByGravity = true
-        
         // bounces fully off of other objects
-        ball.physicsBody?.restitution = 0.75
-        
+        ball.physicsBody?.restitution = 1
         // does not slow down over time
         ball.physicsBody?.linearDamping = 0
-        
         addChild(ball) // add ball object to the view
     }
     
@@ -90,7 +89,7 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
         paddle.name = "paddle"
         paddle.physicsBody = SKPhysicsBody(rectangleOf: paddle.size)
         paddle.physicsBody?.isDynamic = false
-        paddle.physicsBody?.restitution = 1.1
+        paddle.physicsBody?.restitution = 1.
         addChild(paddle)
     }
     
@@ -113,7 +112,6 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
                 tracker = tracker + 1
             }
         }
-        
     }
     
     
@@ -123,7 +121,7 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
         loseZone.name = "loseZone"
         loseZone.physicsBody = SKPhysicsBody(rectangleOf: loseZone.size)
         loseZone.physicsBody?.isDynamic = false
-        loseZone.physicsBody?.restitution = 0.8
+        loseZone.physicsBody?.restitution = 0.5
         addChild(loseZone)
     }
     
@@ -143,6 +141,21 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
         }
     }
     
+    func brickHit(){
+        if brick.color == .blue{
+            brick.color = .orange
+            
+        }else if brick.color == .orange{
+            brick.color = .red
+            
+        }else if brick.color == .red{
+            brick.removeFromParent()
+        }else{
+            print("UHHHHHHHHHH")
+        }
+    }
+    
+    
     func didBegin(_ contact: SKPhysicsContact) {
         var ball: SKPhysicsBody
         var obj: SKPhysicsBody
@@ -157,18 +170,32 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
         
         
         print(obj.node!.name!)
-      
+        
         if (obj.node!.name!.contains("loseZone")){
-            print("You lose!")
             //ball.removeFromParent()
-        }else{
-            print("You win!")
+        }else if obj.node!.name!.contains("paddle"){
             
+          
+            if flip {
+                ball.applyImpulse(CGVector(dx: +2.0, dy: -2.0))
+            }else{
+                ball.applyImpulse(CGVector(dx: -2.0, dy: +2.0))
+            }
+        
+            
+            flip = !flip
+            /*
+            if ball.velocity.dx > 20.0 || ball.velocity.dy > 20.0{
+                ball.velocity = CGVector(dx: 2.0, dy: 2.0)
+            }*/
+                
+                
+            
+        }else{
             let index =  Int(obj.node!.name!)
             print(index!)
             brick = bricks[index!]
-            brick.removeFromParent()
-            
+            brickHit()
         }
         
     }
