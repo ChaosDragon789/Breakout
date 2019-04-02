@@ -40,6 +40,9 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
         ball.physicsBody!.contactTestBitMask = CollisionCategory
         
         physicsWorld.contactDelegate = self
+        
+        ball.physicsBody?.isDynamic = true
+        ball.physicsBody?.applyImpulse(CGVector(dx: 3, dy: 5))
     }
     
     func createBackground() {
@@ -73,7 +76,7 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
         // no loss of energy from friction
         ball.physicsBody?.friction = 0
         // gravity is not a factor
-        ball.physicsBody?.affectedByGravity = true
+        ball.physicsBody?.affectedByGravity = false
         // bounces fully off of other objects
         ball.physicsBody?.restitution = 1
         // does not slow down over time
@@ -92,17 +95,20 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
         paddle.physicsBody?.restitution = 1
         addChild(paddle)
     }
+    //frame.width = (numBricks*BrickSize) + (numBricks-1)*spacer)
     
+    //spacer = frame.width-(numBricks*brickSize)/numBricks-1
     func makeBrick() {
         var tracker = 1;
-        let baselineX = CGFloat(frame.minX+40)
-        for x in 0...6{
+        let baselineX = CGFloat(frame.minX + frame.width/16)
+        let spacer = CGFloat((frame.width-(8*(frame.width/10)))/7)
+        for x in 0...8{
             let temp = CGFloat(x)
-            let xMod = (temp*(frame.width/8)) + CGFloat(x*5)
-            let baselineY = CGFloat(frame.maxY-40)
+            let xMod = (temp*(frame.width/8)) + CGFloat(temp*spacer)//make sure no bricks are cut off horizontally
+            let baselineY = CGFloat(frame.maxY-80)
             for y in 0...2{
                 let yMod = CGFloat((y*20)+(y*5))
-                brick = SKSpriteNode(color: UIColor.blue, size: CGSize(width: frame.width/8, height: 20))
+                brick = SKSpriteNode(color: UIColor.blue, size: CGSize(width: frame.width/10, height: 20))
                 brick.position = CGPoint(x: baselineX + xMod, y: baselineY - yMod)
                 brick.name = "\(tracker)"
                 brick.physicsBody = SKPhysicsBody(rectangleOf: brick.size)
@@ -175,22 +181,7 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
             //ball.removeFromParent()
         }else if obj.node!.name!.contains("paddle"){
             
-          
-            if flip {
-                ball.applyImpulse(CGVector(dx: +2.0, dy: -2.0))
-            }else{
-                ball.applyImpulse(CGVector(dx: -2.0, dy: +2.0))
-            }
-        
-            
-            flip = !flip
-            /*
-            if ball.velocity.dx > 20.0 || ball.velocity.dy > 20.0{
-                ball.velocity = CGVector(dx: 2.0, dy: 2.0)
-            }*/
-                
-                
-            
+       
         }else{
             let index =  Int(obj.node!.name!)
             print(index!)
