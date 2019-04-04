@@ -9,6 +9,9 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
     
     var bricks = [SKSpriteNode()]
     
+    var button = SKLabelNode()
+    var gameStart = false
+    
     
     let BallCategory   : UInt32 = 0x1 << 0
     let CollisionCategory : UInt32 = 0x1 << 1
@@ -16,34 +19,39 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
     let PaddleCategory : UInt32 = 0x1 << 3
     let BoarderCategory : UInt32 = 0x1 << 4
     
-    var flip = true
-    
     override func didMove(to view: SKView) {
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: self.frame)
+        
+        physicsWorld.contactDelegate = self
+        
+        
+        
         createBackground()
-        makeBall()
-        makePaddle()
         makeBrick()
         makeLoseZone()
-        let paddle = childNode(withName: "paddle") as! SKSpriteNode
+        makeeButton()
+        makePaddle()
         
         self.physicsBody!.categoryBitMask = BoarderCategory
         loseZone.physicsBody!.categoryBitMask = CollisionCategory
-        
         brick.physicsBody!.categoryBitMask = CollisionCategory
-        ball.physicsBody!.categoryBitMask = BallCategory
+        
+        
+        let paddle = childNode(withName: "paddle") as! SKSpriteNode
         
         paddle.physicsBody!.categoryBitMask = PaddleCategory
         paddle.physicsBody!.categoryBitMask = CollisionCategory
         
+    }
+    
+    func startUp(){
+        makeBall()
+        
+        ball.physicsBody!.categoryBitMask = BallCategory
         ball.physicsBody!.categoryBitMask = BallCategory
         ball.physicsBody!.contactTestBitMask = CollisionCategory
-        
-        physicsWorld.contactDelegate = self
-        
         ball.physicsBody?.isDynamic = true
         ball.physicsBody?.applyImpulse(CGVector(dx: 3, dy: 5))
-        
     }
     
     func createBackground() {
@@ -98,7 +106,6 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
     }
     //frame.width = (numBricks*BrickSize) + (numBricks-1)*spacer)
     
-    
     func makeBrick() {
         var tracker = 1;
         //make sure to change baselineX when changing brickSize
@@ -126,7 +133,7 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
     
     
     func makeLoseZone() {
-        loseZone = SKSpriteNode(color: UIColor.red, size: CGSize(width: frame.width, height: 50))
+        loseZone = SKSpriteNode(color: UIColor.red, size: CGSize(width: frame.width, height: 70))
         loseZone.position = CGPoint(x: frame.midX, y: frame.minY + 25)
         loseZone.name = "loseZone"
         loseZone.physicsBody = SKPhysicsBody(rectangleOf: loseZone.size)
@@ -135,11 +142,27 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
         addChild(loseZone)
     }
     
+    
+    func makeeButton(){
+        button.text = "Tap to Start"
+        addChild(button)
+    }
+    
+    
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
-            let location = touch.location(in: self)
-            paddle.position.x = location.x
-            paddle.position.y = location.y
+            if gameStart {
+                let location = touch.location(in: self)
+                paddle.position.x = location.x
+                //paddle.position.y = location.y
+            }else{
+                startUp()
+                button.alpha = 0
+                gameStart = true
+                
+            }
+            
         }
     }
     
@@ -147,9 +170,10 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
         for touch in touches {
             let location = touch.location(in: self)
             paddle.position.x = location.x
-            paddle.position.y = location.y
+            //paddle.position.y = location.y
         }
     }
+    
     
     func brickHit(){
         if brick.color == .blue{
@@ -167,28 +191,26 @@ class GameScene: SKScene,  SKPhysicsContactDelegate {
     
     
     func didBegin(_ contact: SKPhysicsContact) {
-        var ball: SKPhysicsBody
         var obj: SKPhysicsBody
         // 2
         if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
-            ball = contact.bodyA
             obj = contact.bodyB
         } else {
-            ball = contact.bodyB
             obj = contact.bodyA
         }
         
         
-        print(obj.node!.name!)
+        //print(obj.node!.name!)
         
         if (obj.node!.name!.contains("loseZone")){
-            //ball.removeFromParent()
+            ball.removeFromParent()
+            
         }else if obj.node!.name!.contains("paddle"){
             
-       
+            
         }else{
             let index =  Int(obj.node!.name!)
-            print(index!)
+            //print(index!)
             brick = bricks[index!]
             brickHit()
         }
